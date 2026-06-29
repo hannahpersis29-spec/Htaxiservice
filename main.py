@@ -77,13 +77,10 @@ async def get_pickup(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Destination:")
 
     return DESTINATION
-    async def get_destination(update: Update, 
-    context: ContextTypes.DEFAULT_TYPE):
-        context.user_data["destination"] = 
-    update.message.text
+    async def get_destination(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data["destination"] = update.message.text
 
-       await 
-    update.message.reply_text("Travel date (DD/MM/YYYY):")
+    await update.message.reply_text("Travel date (DD/MM/YYYY):")
 
     return DATE
 
