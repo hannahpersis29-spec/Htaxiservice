@@ -230,4 +230,52 @@ def main():
 
 
 if __name__ == "__main__":
+   async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
+        "❌ Booking cancelled.",
+        reply_markup=ReplyKeyboardRemove(),
+    )
+    return ConversationHandler.END
+
+
+def main():
+    application = Application.builder().token(BOT_TOKEN).build()
+
+    conv_handler = ConversationHandler(
+        entry_points=[CommandHandler("start", start)],
+        states={
+            CHOOSING: [
+                MessageHandler(filters.TEXT & ~filters.COMMAND, choose_trip)
+            ],
+            NAME: [
+                MessageHandler(filters.TEXT & ~filters.COMMAND, get_name)
+            ],
+            PHONE: [
+                MessageHandler(filters.TEXT & ~filters.COMMAND, get_phone)
+            ],
+            PICKUP: [
+                MessageHandler(filters.TEXT & ~filters.COMMAND, get_pickup)
+            ],
+            DESTINATION: [
+                MessageHandler(filters.TEXT & ~filters.COMMAND, get_destination)
+            ],
+            DATE: [
+                MessageHandler(filters.TEXT & ~filters.COMMAND, get_date)
+            ],
+            TIME: [
+                MessageHandler(filters.TEXT & ~filters.COMMAND, get_time)
+            ],
+        },
+        fallbacks=[CommandHandler("cancel", cancel)],
+    )
+
+    application.add_handler(conv_handler)
+
+    print("H Taxi Service Bot is running...")
+
+    application.run_polling()
+
+
+if __name__ == "__main__":
     main()
+    
