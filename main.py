@@ -1,8 +1,11 @@
+import os
+
 from telegram import (
     Update,
     ReplyKeyboardMarkup,
     ReplyKeyboardRemove,
 )
+
 from telegram.ext import (
     Application,
     CommandHandler,
@@ -11,141 +14,85 @@ from telegram.ext import (
     ContextTypes,
     filters,
 )
-import os
-import logging
 
-# ----------------------------
-# LOGGING
-# ----------------------------
-logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    level=logging.INFO,
-)
-
-# ----------------------------
-# BOT SETTINGS
-# ----------------------------
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-
 ADMIN_ID = 2072039982
 
-# ----------------------------
-# CONVERSATION STATES
-# ----------------------------
-(
-    CHOOSING,
-    NAME,
-    PHONE,
-    PICKUP,
-    DESTINATION,
-    DATE,
-    TIME,
-) = range(7)
+CHOOSING, NAME, PHONE, PICKUP, DESTINATION, DATE, TIME = range(7)
 
-# ----------------------------
-# REPLY KEYBOARD
-# ----------------------------
 reply_keyboard = [
     ["✈️ Airport Pickup"],
     ["🏙️ Local Trip"],
-    ["🚖 Outstation Trip"],
+    ["🛣️ Outstation"],
 ]
 
 markup = ReplyKeyboardMarkup(
     reply_keyboard,
     resize_keyboard=True,
+    one_time_keyboard=True,
 )
 
-# ----------------------------
-# START COMMAND
-# ----------------------------
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data.clear()
+
     await update.message.reply_text(
         "🚖 Welcome to H Taxi Service!\n\n"
-        "Please choose your trip type.",
+        "Please choose your trip type:",
         reply_markup=markup,
     )
+
     return CHOOSING
 
 
-# ----------------------------
-# CHOOSE TRIP
-# ----------------------------
 async def choose_trip(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data["trip_type"] = update.message.text
 
     await update.message.reply_text(
-        "Please enter your full name:",
+        "Please enter your name:",
         reply_markup=ReplyKeyboardRemove(),
     )
 
     return NAME
 
 
-# ----------------------------
-# CUSTOMER NAME
-# ----------------------------
 async def get_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data["name"] = update.message.text
 
-    await update.message.reply_text(
-        "Please enter your phone number:"
-    )
+    await update.message.reply_text("Please enter your phone number:")
 
     return PHONE
-    # ----------------------------
-# PHONE NUMBER
-# ----------------------------
+
+
 async def get_phone(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data["phone"] = update.message.text
 
-    await update.message.reply_text(
-        "📍 Enter your pickup location:"
-    )
+    await update.message.reply_text("Pickup location:")
 
     return PICKUP
 
 
-# ----------------------------
-# PICKUP LOCATION
-# ----------------------------
 async def get_pickup(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data["pickup"] = update.message.text
 
-    await update.message.reply_text(
-        "📍 Enter your destination:"
-    )
+    await update.message.reply_text("Destination:")
 
     return DESTINATION
-
-
-# ----------------------------
-# DESTINATION
-# ----------------------------
-async def get_destination(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    async def get_destination(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data["destination"] = update.message.text
 
-    await update.message.reply_text(
-        "📅 Enter your travel date\n\nExample: 30/06/2026"
-    )
+    await update.message.reply_text("Travel date (DD/MM/YYYY):")
 
     return DATE
 
 
-# ----------------------------
-# TRAVEL DATE
-# ----------------------------
 async def get_date(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data["date"] = update.message.text
 
-    await update.message.reply_text(
-        "🕒 Enter your pickup time\n\nExample: 08:30 AM"
-    )
+    await update.message.reply_text("Travel time (e.g. 10:30 AM):")
 
     return TIME
-    # ----------------------------
-# TRAVEL TIME
-# ----------------------------
+
+
 async def get_time(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data["time"] = update.message.text
 
@@ -174,9 +121,6 @@ async def get_time(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return ConversationHandler.END
 
 
-# ----------------------------
-# CANCEL
-# ----------------------------
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "Booking cancelled.",
@@ -184,61 +128,7 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
     return ConversationHandler.END
-
-
-# ----------------------------
-# MAIN
-# ----------------------------
-def main():
-    application = Application.builder().token(BOT_TOKEN).build()
-
-    conv_handler = ConversationHandler(
-        entry_points=[CommandHandler("start", start)],
-        states={
-            CHOOSING: [
-                MessageHandler(filters.TEXT & ~filters.COMMAND, choose_trip)
-            ],
-            NAME: [
-                MessageHandler(filters.TEXT & ~filters.COMMAND, get_name)
-            ],
-            PHONE: [
-                MessageHandler(filters.TEXT & ~filters.COMMAND, get_phone)
-            ],
-            PICKUP: [
-                MessageHandler(filters.TEXT & ~filters.COMMAND, get_pickup)
-            ],
-            DESTINATION: [
-                MessageHandler(filters.TEXT & ~filters.COMMAND, get_destination)
-            ],
-            DATE: [
-                MessageHandler(filters.TEXT & ~filters.COMMAND, get_date)
-            ],
-            TIME: [
-                MessageHandler(filters.TEXT & ~filters.COMMAND, get_time)
-            ],
-        },
-        fallbacks=[
-            CommandHandler("cancel", cancel),
-        ],
-    )
-
-    application.add_handler(conv_handler)
-
-    print("H Taxi Service Bot is running...")
-
-    application.run_polling()
-
-
-if __name__ == "__main__":
-   async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "❌ Booking cancelled.",
-        reply_markup=ReplyKeyboardRemove(),
-    )
-    return ConversationHandler.END
-
-
-def main():
+    def main():
     application = Application.builder().token(BOT_TOKEN).build()
 
     conv_handler = ConversationHandler(
@@ -272,10 +162,8 @@ def main():
     application.add_handler(conv_handler)
 
     print("H Taxi Service Bot is running...")
-
     application.run_polling()
 
 
 if __name__ == "__main__":
     main()
-    
